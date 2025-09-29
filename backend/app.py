@@ -3,7 +3,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional, List
 import os
+from dotenv import load_dotenv
 from rag_system import HotelRAGSystem
+
+# Load environment variables
+load_dotenv()
 
 app = FastAPI(title="OYO Hotel RAG API", version="1.0.0")
 
@@ -37,8 +41,15 @@ class SearchResponse(BaseModel):
 async def startup_event():
     """Initialize RAG system on startup"""
     global rag_system
+    
+    # Get configuration from environment variables
     csv_path = os.getenv("CSV_PATH", "oyo_rooms.csv")
-    hf_token = os.getenv("HF_TOKEN", "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")
+    hf_token = os.getenv("HF_TOKEN")
+    
+    if not hf_token:
+        print("⚠️  WARNING: HF_TOKEN not found in environment variables!")
+        print("💡 Create a .env file with: HF_TOKEN=your_token_here")
+        print("🔄 Continuing without token (some features may not work)...")
     
     print("🚀 Initializing OYO Hotel RAG System...")
     rag_system = HotelRAGSystem(csv_path, hf_token)
@@ -116,4 +127,4 @@ async def get_example_queries():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run(app, host="0.0.0.0", port=8000)
